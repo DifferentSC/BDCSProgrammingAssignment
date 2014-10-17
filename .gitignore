@@ -13,3 +13,4 @@ generated
 *~
 *.iml
 .idea
+REEF_LOCAL_RUNTIME

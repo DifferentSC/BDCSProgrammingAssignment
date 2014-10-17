@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.snu.cms.reef.tutorial;
+package edu.snu.bdcs.differentsc.mlpractice;
 
+import com.microsoft.reef.driver.task.TaskConfigurationOptions;
+import com.microsoft.reef.io.network.nggroup.api.task.GroupCommClient;
 import com.microsoft.reef.task.Task;
+import com.microsoft.tang.annotations.Parameter;
 
 import javax.inject.Inject;
 
-/**
- * A 'hello REEF' Task.
- */
 public final class ControllerTask implements Task {
   @Inject
-  ControllerTask() {
+  ControllerTask(final GroupCommClient groupCommClient,
+      @Parameter(TaskConfigurationOptions.Identifier.class) final String identifier,
+      @Parameter(IterNum.class) final int iterNum) {
+
   }
 
   @Override
