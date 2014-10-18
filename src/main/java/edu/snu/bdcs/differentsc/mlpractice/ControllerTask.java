@@ -30,18 +30,16 @@ public final class ControllerTask implements Task {
 
   private final CommunicationGroupClient communicationGroupClient;
   private final Broadcast.Sender<ArrayList<Double>> broadCastSender;
-  private final Reduce.Receiver<ArrayList<Double>> initialParameterReceiver;
   private final Reduce.Receiver<ArrayList<Double>> globalGradientReceiver;
   private final int iterNum;
 
   @Inject
   ControllerTask(final GroupCommClient groupCommClient,
       @Parameter(TaskConfigurationOptions.Identifier.class) final String identifier,
-      @Parameter(IterNum.class) final int iterNum) {
+      @Parameter(Parameters.IterNum.class) final int iterNum) {
 
     this.communicationGroupClient = groupCommClient.getCommunicationGroup(MLGroupCommucation.class);
     this.broadCastSender = communicationGroupClient.getBroadcastSender(BroadCastVector.class);
-    this.initialParameterReceiver = communicationGroupClient.getReduceReceiver(ComputeInitialParameter.class);
     this.globalGradientReceiver = communicationGroupClient.getReduceReceiver(ComputeGlobalGradient.class);
     this.iterNum = iterNum;
   }

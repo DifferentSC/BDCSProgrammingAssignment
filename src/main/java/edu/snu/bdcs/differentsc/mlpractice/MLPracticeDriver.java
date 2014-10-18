@@ -60,9 +60,9 @@ public final class MLPracticeDriver {
   public MLPracticeDriver(final EvaluatorRequestor requestor,
     final GroupCommDriver groupCommDriver,
     final DataLoadingService dataLoadingService,
-    @Parameter(WorkerNum.class) int workerNum,
-    @Parameter(IterNum.class) int iterNum,
-    @Parameter(Lambda.class) double lambda) {
+    @Parameter(Parameters.WorkerNum.class) int workerNum,
+    @Parameter(Parameters.IterNum.class) int iterNum,
+    @Parameter(Parameters.Lambda.class) double lambda) {
     LOG.log(Level.FINE, "Instantiated Driver");
     this.dataLoadingService = dataLoadingService;
     this.groupCommDriver = groupCommDriver;
@@ -70,10 +70,6 @@ public final class MLPracticeDriver {
     this.MLCommGroup.addBroadcast(BroadCastVector.class, BroadcastOperatorSpec.newBuilder()
         .setSenderId("ControllerTask")
         .setDataCodecClass(SerializableCodec.class)
-        .build()).addReduce(ComputeInitialParameter.class, ReduceOperatorSpec.newBuilder()
-        .setReceiverId("ControllerTask")
-        .setDataCodecClass(SerializableCodec.class)
-        .setReduceFunctionClass(CalculateInitialParameter.class)
         .build()).addReduce(ComputeGlobalGradient.class, ReduceOperatorSpec.newBuilder()
         .setReceiverId("ControllerTask")
         .setDataCodecClass(SerializableCodec.class)
@@ -117,8 +113,8 @@ public final class MLPracticeDriver {
         final JavaConfigurationBuilder partialTaskConfigurationBuilder = Tang.Factory.getTang()
             .newConfigurationBuilder();
         partialTaskConfigurationBuilder.addConfiguration(basicTaskConf);
-        partialTaskConfigurationBuilder.bindNamedParameter(IterNum.class, Integer.toString(iterNum));
-        partialTaskConfigurationBuilder.bindNamedParameter(Lambda.class, Double.toString(lambda));
+        partialTaskConfigurationBuilder.bindNamedParameter(Parameters.IterNum.class, Integer.toString(iterNum));
+        partialTaskConfigurationBuilder.bindNamedParameter(Parameters.Lambda.class, Double.toString(lambda));
         final Configuration partialTaskConfiguration = partialTaskConfigurationBuilder.build();
         MLCommGroup.addTask(partialTaskConfiguration);
 

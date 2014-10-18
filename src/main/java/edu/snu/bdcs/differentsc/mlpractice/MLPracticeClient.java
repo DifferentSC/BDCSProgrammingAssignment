@@ -24,10 +24,8 @@ import com.microsoft.reef.io.network.nggroup.impl.driver.GroupCommService;
 import com.microsoft.reef.runtime.local.client.LocalRuntimeConfiguration;
 import com.microsoft.reef.util.EnvironmentUtils;
 import com.microsoft.tang.Configuration;
-import com.microsoft.tang.ConfigurationBuilder;
 import com.microsoft.tang.JavaConfigurationBuilder;
 import com.microsoft.tang.Tang;
-import com.microsoft.tang.annotations.NamedParameter;
 import com.microsoft.tang.exceptions.BindException;
 import com.microsoft.tang.exceptions.InjectionException;
 import org.apache.hadoop.mapred.TextInputFormat;
@@ -74,9 +72,9 @@ public final class MLPracticeClient {
         .build();
 
     JavaConfigurationBuilder cb = Tang.Factory.getTang().newConfigurationBuilder(dataLoadConfiguration);
-    cb.bindNamedParameter(WorkerNum.class, Integer.toString(NUM_WORKERS));
-    cb.bindNamedParameter(IterNum.class, Integer.toString(NUM_ITERS));
-    cb.bindNamedParameter(Lambda.class, Double.toString(LAMBDA));
+    cb.bindNamedParameter(Parameters.WorkerNum.class, Integer.toString(NUM_WORKERS));
+    cb.bindNamedParameter(Parameters.IterNum.class, Integer.toString(NUM_ITERS));
+    cb.bindNamedParameter(Parameters.Lambda.class, Double.toString(LAMBDA));
 
     Configuration driverConfiguration = Tang.Factory.getTang().newConfigurationBuilder(cb.build(),
         GroupCommService.getConfiguration()).build();

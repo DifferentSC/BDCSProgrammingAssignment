@@ -35,7 +35,6 @@ public final class WorkerTask implements Task {
 
   private final CommunicationGroupClient communicationGroupClient;
   private final Broadcast.Receiver<ArrayList<Double>> broadCastReceiver;
-  private final Reduce.Sender<ArrayList<Double>> initialParameterSender;
   private final Reduce.Sender<ArrayList<Double>> globalGradientSender;
 
   private final DataSet<LongWritable, Text> dataSet;
@@ -44,19 +43,17 @@ public final class WorkerTask implements Task {
   private int numberOfTrainingSets;
   private int dimension;
   private int m = 5;
-  private double c1 = 0.0001;
-  private double c2 = 0.9;
+  private double c = 0.0001;
 
   @Inject
   WorkerTask(final GroupCommClient groupCommClient,
       final DataSet<LongWritable, Text> dataSet,
       @Parameter(TaskConfigurationOptions.Identifier.class) final String identifier,
-      @Parameter(IterNum.class) final int iterNum,
-      @Parameter(Lambda.class) final double lambda) {
+      @Parameter(Parameters.IterNum.class) final int iterNum,
+      @Parameter(Parameters.Lambda.class) final double lambda) {
 
     this.communicationGroupClient = groupCommClient.getCommunicationGroup(MLGroupCommucation.class);
     this.broadCastReceiver = communicationGroupClient.getBroadcastReceiver(BroadCastVector.class);
-    this.initialParameterSender = communicationGroupClient.getReduceSender(ComputeInitialParameter.class);
     this.globalGradientSender = communicationGroupClient.getReduceSender(ComputeGlobalGradient.class);
     this.dataSet = dataSet;
     this.iterNum = iterNum;
@@ -190,7 +187,7 @@ public final class WorkerTask implements Task {
         }
         newError += 1/2 * lambda * MyVector.scalarProduct(newWeights, newWeights);
 
-        if (newError > currentError + c1 * learningRate * MyVector.scalarProduct(globalGradient, p)) {
+        if (newError > currentError + c * learningRate * MyVector.scalarProduct(globalGradient, p)) {
           learningRate *= 0.3;
           continue;
         }
