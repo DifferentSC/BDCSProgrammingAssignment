@@ -36,7 +36,6 @@ import com.microsoft.tang.exceptions.InjectionException;
 import com.microsoft.wake.EventHandler;
 
 import javax.inject.Inject;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,7 +48,6 @@ public final class MLPracticeDriver {
   private final DataLoadingService dataLoadingService;
   private final GroupCommDriver groupCommDriver;
   private final CommunicationGroupDriver MLCommGroup;
-  private AtomicBoolean isControllerTaskStarted = new AtomicBoolean(false);
   private final int workerNum;
   private final int iterNum;
   private final double lambda;
@@ -67,13 +65,21 @@ public final class MLPracticeDriver {
     this.dataLoadingService = dataLoadingService;
     this.groupCommDriver = groupCommDriver;
     this.MLCommGroup = groupCommDriver.newCommunicationGroup(MLGroupCommucation.class, workerNum + 1);
-    this.MLCommGroup.addBroadcast(BroadCastVector.class, BroadcastOperatorSpec.newBuilder()
+    this.MLCommGroup.addBroadcast(GroupCommunicationNames.VectorBroadcaster.class, BroadcastOperatorSpec.newBuilder()
         .setSenderId("ControllerTask")
         .setDataCodecClass(SerializableCodec.class)
-        .build()).addReduce(ComputeGlobalGradient.class, ReduceOperatorSpec.newBuilder()
+        .build()).addReduce(GroupCommunicationNames.SumVectorReducer.class, ReduceOperatorSpec.newBuilder()
         .setReceiverId("ControllerTask")
         .setDataCodecClass(SerializableCodec.class)
-        .setReduceFunctionClass(CalculateGlobalGradient.class).build())
+        .setReduceFunctionClass(ReduceFunctions.AddVectorReduceFunc.class)
+        .build()).addReduce(GroupCommunicationNames.AverageVectorReducer.class, ReduceOperatorSpec.newBuilder()
+        .setReceiverId("ControllerTask")
+        .setDataCodecClass(SerializableCodec.class)
+        .setReduceFunctionClass(ReduceFunctions.AverageVectorReduceFunc.class)
+        .build()).addReduce(GroupCommunicationNames.SumDoubleReducer.class, ReduceOperatorSpec.newBuilder()
+        .setReceiverId("ControllerTask")
+        .setDataCodecClass(SerializableCodec.class)
+        .setReduceFunctionClass(ReduceFunctions.AddDoubleReduceFunc.class).build())
         .finalise();
 
     this.requestor = requestor;

@@ -34,8 +34,10 @@ import java.util.List;
 public final class WorkerTask implements Task {
 
   private final CommunicationGroupClient communicationGroupClient;
-  private final Broadcast.Receiver<ArrayList<Double>> broadCastReceiver;
-  private final Reduce.Sender<ArrayList<Double>> globalGradientSender;
+  private final Broadcast.Receiver<ArrayList<Double>> vectorBroadcastReceiver;
+  private final Reduce.Sender<ArrayList<Double>> sumVectorReduceSender;
+  private final Reduce.Sender<ArrayList<Double>> averageVectorReduceSender;
+  private final Reduce.Sender<Double> sumDoubleReduceSender;
 
   private final DataSet<LongWritable, Text> dataSet;
   private final int iterNum;
@@ -53,8 +55,14 @@ public final class WorkerTask implements Task {
       @Parameter(Parameters.Lambda.class) final double lambda) {
 
     this.communicationGroupClient = groupCommClient.getCommunicationGroup(MLGroupCommucation.class);
-    this.broadCastReceiver = communicationGroupClient.getBroadcastReceiver(BroadCastVector.class);
-    this.globalGradientSender = communicationGroupClient.getReduceSender(ComputeGlobalGradient.class);
+    this.vectorBroadcastReceiver = communicationGroupClient
+        .getBroadcastReceiver(GroupCommunicationNames.VectorBroadcaster.class);
+    this.sumVectorReduceSender = communicationGroupClient
+        .getReduceSender(GroupCommunicationNames.SumVectorReducer.class);
+    this.averageVectorReduceSender = communicationGroupClient
+        .getReduceSender(GroupCommunicationNames.AverageVectorReducer.class);
+    this.sumDoubleReduceSender = communicationGroupClient
+        .getReduceSender(GroupCommunicationNames.SumDoubleReducer.class);
     this.dataSet = dataSet;
     this.iterNum = iterNum;
     this.numberOfTrainingSets = 0;
@@ -117,9 +125,9 @@ public final class WorkerTask implements Task {
         }
         gradient.add(result);
       }
-      globalGradientSender.send(gradient.getArrayList());
+      sumVectorReduceSender.send(gradient.getArrayList());
       // Regularization
-      globalGradient = new MyVector(broadCastReceiver.receive());
+      globalGradient = new MyVector(vectorBroadcastReceiver.receive());
       globalGradient = MyVector.add(globalGradient, MyVector.constantMultiply(lambda, weights));
       System.out.println("Global Gradient: " + globalGradient.getArrayList().toString());
       // Caluclate Sk-1, Yk-1, rhok-1
@@ -176,7 +184,7 @@ public final class WorkerTask implements Task {
         }
         currentError += 1/2 * lambda * MyVector.scalarProduct(weights, weights);
       }
-      // Determines learning rate by backtracking search
+      // Determines learning rate by backtracking line search
       double learningRate = 1.;
       while(true) {
         double newError = 0;
@@ -187,39 +195,18 @@ public final class WorkerTask implements Task {
         }
         newError += 1/2 * lambda * MyVector.scalarProduct(newWeights, newWeights);
 
+        // Armijo-Goldstein condition
         if (newError > currentError + c * learningRate * MyVector.scalarProduct(globalGradient, p)) {
+          // Try again with smaller learning rate
           learningRate *= 0.3;
           continue;
         }
-
-        // Wolfe's second rule should be performed on global gradient, but it could not be in distributed system so we
-        // use local gradient instead
-
-        /*
-        MyVector newGradient = new MyVector();
-        List<Double> newWtx = new ArrayList<Double>();
-        for(int j = 0; j < numberOfTrainingSets; j++) {
-          MyVector xj = trainingSets.get(j).first;
-          // Gets inner product
-          double result = MyVector.scalarProduct(newWeights, xj);
-          newWtx.add(result);
-        }
-        // Compute gradient
-        for(int j = 0; j < dimension + 1; j++) {
-          double result = 0.;
-          for(int k = 0; k < numberOfTrainingSets; k++) {
-            double xkj = trainingSets.get(k).first.get(j);
-            result += 2 * newWtx.get(k) * xkj;
-          }
-          newGradient.add(result);
-        }
-        if (MyVector.scalarProduct(newGradient, p) < c2 * MyVector.scalarProduct())
-        */
 
         oldWeights = weights;
         oldGradient = globalGradient;
         weights = newWeights;
 
+        // Re-use current calculated error
         currentError = newError;
         break;
       }
@@ -231,7 +218,16 @@ public final class WorkerTask implements Task {
       }
       System.out.println("Learning Rate: " + learningRate);
       System.out.println("Weights :" + weights.getArrayList().toString());
+
+      // Send local weights to Controller
+      averageVectorReduceSender.send(weights.getArrayList());
+      MyVector globalWeights = new MyVector(vectorBroadcastReceiver.receive());
+      // One of the workers has converged
+      if (globalWeights.containsNaN())
+        break;
+      sumDoubleReduceSender.send(currentError);
     }
+
     return null;
   }
 }

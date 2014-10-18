@@ -30,7 +30,7 @@ public class Parameters {
   public static class Lambda implements Name<Double> {
   }
 
-  @NamedParameter(doc = "HDFS input file path", short_name = "input")
+  @NamedParameter(doc = "HDFS input file path", short_name = "input", default_value = "/input.csv")
   public static class InputFilePath implements Name<String> {
   }
 }

@@ -34,6 +34,16 @@ public class MyVector {
     return contents;
   }
 
+  public boolean containsNaN() {
+
+    for(double elem : contents){
+      if(Double.isNaN(elem))
+        return true;
+    }
+
+    return false;
+  }
+
   public static double scalarProduct(MyVector a, MyVector b) {
     if (a.size() != b.size())
       throw new RuntimeException();
