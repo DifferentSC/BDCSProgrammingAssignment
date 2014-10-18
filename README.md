@@ -22,4 +22,5 @@ I attached the training-set I used on my repo. It's from UCI Machine Learning Re
 
 Updating Quasi-Newton Matrices With Limited Storage. J. Nocedal. 1980
 Fast B-spline curve fitting by L-BFGS. Wenni Zheng a, Pengbo Bo, Yang Liu, Wenping Wang. 2012
+
 Wikipedia article about Backtracking Linesearch(http://en.wikipedia.org/wiki/Backtracking_line_search)
