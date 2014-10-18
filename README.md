@@ -17,3 +17,9 @@ You can excute the MLPracticeClient by putting `./bin/run.sh [command args]` in 
 It reads input from Hadoop file system and it's address is fixed to "hdfs://localhost:9000". After execution, it produces output to HDFS and it's stored at "hdfs://localhost:9000/output.txt". The output file has information about parameter vector and error value on each iteration.
 
 I attached the training-set I used on my repo. It's from UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets.html)
+
+# References
+
+Updating Quasi-Newton Matrices With Limited Storage. J. Nocedal. 1980
+Fast B-spline curve fitting by L-BFGS. Wenni Zheng a, Pengbo Bo, Yang Liu, Wenping Wang. 2012
+Wikipedia article about Backtracking Linesearch(http://en.wikipedia.org/wiki/Backtracking_line_search)
