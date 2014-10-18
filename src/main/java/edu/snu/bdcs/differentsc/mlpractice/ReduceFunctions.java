@@ -18,9 +18,9 @@ public class ReduceFunctions {
     @Override
     public ArrayList<Double> apply(final Iterable<ArrayList<Double>> vectorIterable) {
       final Iterator<ArrayList<Double>> vectorIterator = vectorIterable.iterator();
-      ArrayList<Double> results = vectorIterator.next();
+      final ArrayList<Double> results = vectorIterator.next();
       while(vectorIterator.hasNext()) {
-        ArrayList<Double> vector = vectorIterator.next();
+        final ArrayList<Double> vector = vectorIterator.next();
         for(int i = 0; i < results.size(); i++) {
           results.set(i, results.get(i) + vector.get(i));
         }
@@ -39,10 +39,10 @@ public class ReduceFunctions {
     public ArrayList<Double> apply(Iterable<ArrayList<Double>> iterable) {
       final Iterator<ArrayList<Double>> iterator = iterable.iterator();
       int count = 1;
-      ArrayList<Double> averageWeights = iterator.next();
+      final ArrayList<Double> averageWeights = iterator.next();
 
       while(iterator.hasNext()) {
-        ArrayList<Double> weight = iterator.next();
+        final ArrayList<Double> weight = iterator.next();
         for (int i = 0; i < averageWeights.size(); i++)
           averageWeights.set(i, averageWeights.get(i) + weight.get(i));
         count++;

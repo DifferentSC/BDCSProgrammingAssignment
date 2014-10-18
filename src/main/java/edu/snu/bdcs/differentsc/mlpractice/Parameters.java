@@ -4,7 +4,7 @@ import com.microsoft.tang.annotations.Name;
 import com.microsoft.tang.annotations.NamedParameter;
 
 /**
- * Created by Gyewon on 2014. 10. 18..
+ * Classes for named parameter
  */
 public class Parameters {
 

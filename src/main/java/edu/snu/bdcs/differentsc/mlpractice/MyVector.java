@@ -3,11 +3,11 @@ package edu.snu.bdcs.differentsc.mlpractice;
 import java.util.ArrayList;
 
 /**
- * Created by Gyewon on 2014. 10. 18..
+ * Custom Vector class for L-BFGS
  */
 public class MyVector {
 
-  private ArrayList<Double> contents;
+  private final ArrayList<Double> contents;
 
   public int size() {
     return contents.size();
@@ -21,6 +21,7 @@ public class MyVector {
   public boolean isExist() {
     return !contents.isEmpty();
   }
+
   public MyVector() {
     contents = new ArrayList<Double>();
   }
@@ -69,7 +70,7 @@ public class MyVector {
     if (a.size() != b.size())
       throw new RuntimeException();
     else {
-      ArrayList<Double> result = new ArrayList<Double>();
+      final ArrayList<Double> result = new ArrayList<Double>();
       for (int i = 0; i < a.size(); i++) {
         result.add(a.getArrayList().get(i) - b.getArrayList().get(i));
       }
@@ -80,7 +81,7 @@ public class MyVector {
     if (a.size() != b.size())
       throw new RuntimeException();
     else {
-      ArrayList<Double> result = new ArrayList<Double>();
+      final ArrayList<Double> result = new ArrayList<Double>();
       for (int i = 0; i < a.size(); i++) {
         result.add(a.getArrayList().get(i) + b.getArrayList().get(i));
       }
@@ -88,7 +89,7 @@ public class MyVector {
     }
   }
   public static MyVector constantMultiply(double a, MyVector b) {
-    ArrayList<Double> result = new ArrayList<Double>();
+    final ArrayList<Double> result = new ArrayList<Double>();
     for (int i = 0; i < b.size(); i++) {
       result.add(a * b.get(i));
     }

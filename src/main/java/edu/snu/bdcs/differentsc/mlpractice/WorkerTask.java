@@ -1,18 +1,3 @@
-/**
- * Copyright (C) 2014 Microsoft Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package edu.snu.bdcs.differentsc.mlpractice;
 
 import com.microsoft.reef.driver.task.TaskConfigurationOptions;
@@ -72,11 +57,11 @@ public final class WorkerTask implements Task {
   @Override
   public final byte[] call(final byte[] memento) throws Exception {
 
-    List<Pair<MyVector,Double>> trainingSets = new ArrayList<Pair<MyVector, Double>>();
+    final List<Pair<MyVector,Double>> trainingSets = new ArrayList<Pair<MyVector, Double>>();
     // Saves training set
     for(Pair<LongWritable,Text> entry: dataSet) {
-      String line = entry.second.toString();
-      String[] splitted = line.split("[\\s,;]+");
+      final String line = entry.second.toString();
+      final String[] splitted = line.split("[\\s,;]+");
       dimension = splitted.length - 1;
       Pair<MyVector,Double> newSet = new Pair<MyVector,Double>(new MyVector(), Double.valueOf(splitted[dimension]));
       // Add 1 to specify constant parameter!
@@ -87,9 +72,6 @@ public final class WorkerTask implements Task {
       trainingSets.add(newSet);
       numberOfTrainingSets++;
     }
-
-    System.out.println("Training Set #0: " + trainingSets.get(0).first.getArrayList().toString() + ", " +
-        trainingSets.get(0).second);
 
     // Initializes weights vector to zero
     MyVector weights = new MyVector();
@@ -106,10 +88,11 @@ public final class WorkerTask implements Task {
     double currentError = -1;
 
     for(int i = 0; i < iterNum; i++) {
+      System.out.println("Iteration " + i);
       // Get gradient for current weights
-      MyVector gradient = new MyVector();
+      final MyVector gradient = new MyVector();
       // Get wtx's in advance
-      List<Double> wtx = new ArrayList<Double>();
+      final List<Double> wtx = new ArrayList<Double>();
       for(int j = 0; j < numberOfTrainingSets; j++) {
         MyVector xj = trainingSets.get(j).first;
         // Gets inner product
@@ -129,7 +112,6 @@ public final class WorkerTask implements Task {
       // Regularization
       globalGradient = new MyVector(vectorBroadcastReceiver.receive());
       globalGradient = MyVector.add(globalGradient, MyVector.constantMultiply(lambda, weights));
-      System.out.println("Global Gradient: " + globalGradient.getArrayList().toString());
       // Caluclate Sk-1, Yk-1, rhok-1
       if (oldGradient.isExist() && oldWeights.isExist()) {
         MyVector yVector = MyVector.subtract(globalGradient, oldGradient);
@@ -147,19 +129,15 @@ public final class WorkerTask implements Task {
           hDiagonal.add(1);
       }
       else {
-        MyVector sVector = sVectorList.get(sVectorList.size()-1);
-        MyVector yVector = yVectorList.get(yVectorList.size()-1);
-        double sty = MyVector.scalarProduct(sVector, yVector);
-        double ysquare = MyVector.scalarProduct(yVector, yVector);
-        System.out.println("SVector: " + sVector.getArrayList().toString());
-        System.out.println("STY : " + sty);
-        System.out.println("YSqaure: " + ysquare);
+        final MyVector sVector = sVectorList.get(sVectorList.size()-1);
+        final MyVector yVector = yVectorList.get(yVectorList.size()-1);
+        final double sty = MyVector.scalarProduct(sVector, yVector);
+        final double ysquare = MyVector.scalarProduct(yVector, yVector);
         for(int j = 0; j < dimension + 1; j++) {
           hDiagonal.add(sty/ysquare);
         }
       }
-      System.out.println("hDiagonal: " + hDiagonal.getArrayList().toString());
-      List<Double> alphaList = new ArrayList<Double>();
+      final List<Double> alphaList = new ArrayList<Double>();
       // Copy globalGradient to q
       MyVector q = new MyVector(globalGradient.getArrayList());
       for (int j = sVectorList.size() - 1; j >= 0; j--) {
@@ -174,7 +152,6 @@ public final class WorkerTask implements Task {
       }
       MyVector p = MyVector.constantMultiply(-1, z);
 
-      System.out.println("z: " + z.getArrayList().toString());
       // Compute currentError if it's invalid
       if (currentError < 0) {
         currentError = 0;
@@ -188,7 +165,7 @@ public final class WorkerTask implements Task {
       double learningRate = 1.;
       while(true) {
         double newError = 0;
-        MyVector newWeights = MyVector.add(weights, MyVector.constantMultiply(learningRate, p));
+        final MyVector newWeights = MyVector.add(weights, MyVector.constantMultiply(learningRate, p));
         for (int j = 0; j < numberOfTrainingSets; j++) {
           double error = MyVector.scalarProduct(newWeights, trainingSets.get(j).first) - trainingSets.get(j).second;
           newError += error * error;
@@ -217,11 +194,11 @@ public final class WorkerTask implements Task {
         rhoList.remove(0);
       }
       System.out.println("Learning Rate: " + learningRate);
-      System.out.println("Weights :" + weights.getArrayList().toString());
+      System.out.println("Weights :" + weights.getArrayList().toString() + "\n");
 
       // Send local weights to Controller
       averageVectorReduceSender.send(weights.getArrayList());
-      MyVector globalWeights = new MyVector(vectorBroadcastReceiver.receive());
+      final MyVector globalWeights = new MyVector(vectorBroadcastReceiver.receive());
       // One of the workers has converged
       if (globalWeights.containsNaN())
         break;
