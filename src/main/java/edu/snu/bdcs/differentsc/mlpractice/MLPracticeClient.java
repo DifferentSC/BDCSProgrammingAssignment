@@ -24,12 +24,15 @@ import com.microsoft.reef.io.network.nggroup.impl.driver.GroupCommService;
 import com.microsoft.reef.runtime.local.client.LocalRuntimeConfiguration;
 import com.microsoft.reef.util.EnvironmentUtils;
 import com.microsoft.tang.Configuration;
+import com.microsoft.tang.Injector;
 import com.microsoft.tang.JavaConfigurationBuilder;
 import com.microsoft.tang.Tang;
 import com.microsoft.tang.exceptions.BindException;
 import com.microsoft.tang.exceptions.InjectionException;
+import com.microsoft.tang.formats.CommandLine;
 import org.apache.hadoop.mapred.TextInputFormat;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,13 +43,16 @@ public final class MLPracticeClient {
 
   private static final Logger LOG = Logger.getLogger(MLPracticeClient.class.getName());
 
-  /**
-   * Number of milliseconds to wait for the job to complete.
-   */
-  private static final int JOB_TIMEOUT = 1000000; // 1000 sec.
-  private static int NUM_WORKERS = 10;
-  private static int NUM_ITERS = 10;
-  private static double LAMBDA = 0.001;
+  // Number of milliseconds to wait for the job to complete. Currently 1000secs.
+  private static final int JOB_TIMEOUT = 1000000;
+  // Number of parallel worker processes
+  private static int NUM_WORKERS;
+  // Number of iterations
+  private static int NUM_ITERS;
+  // Lambda value used for regularization
+  private static double LAMBDA;
+  // HDFS File input path.
+  private static String FILE_INPUT_PATH;
 
   /**
    * @return the configuration of the MLPractice driver.
@@ -62,7 +68,7 @@ public final class MLPracticeClient {
         .setComputeRequest(controllerRequest)
         .setMemoryMB(128)
         .setInputFormatClass(TextInputFormat.class)
-        .setInputPath("/input.csv")
+        .setInputPath(FILE_INPUT_PATH)
         .setNumberOfDesiredSplits(NUM_WORKERS)
         .setDriverConfigurationModule(DriverConfiguration.CONF
             .set(DriverConfiguration.DRIVER_IDENTIFIER, "MLDriver")
@@ -71,12 +77,12 @@ public final class MLPracticeClient {
             .set(DriverConfiguration.ON_TASK_COMPLETED, MLPracticeDriver.CompleteTaskHandler.class))
         .build();
 
-    JavaConfigurationBuilder cb = Tang.Factory.getTang().newConfigurationBuilder(dataLoadConfiguration);
+    final JavaConfigurationBuilder cb = Tang.Factory.getTang().newConfigurationBuilder(dataLoadConfiguration);
     cb.bindNamedParameter(Parameters.WorkerNum.class, Integer.toString(NUM_WORKERS));
     cb.bindNamedParameter(Parameters.IterNum.class, Integer.toString(NUM_ITERS));
     cb.bindNamedParameter(Parameters.Lambda.class, Double.toString(LAMBDA));
 
-    Configuration driverConfiguration = Tang.Factory.getTang().newConfigurationBuilder(cb.build(),
+    final Configuration driverConfiguration = Tang.Factory.getTang().newConfigurationBuilder(cb.build(),
         GroupCommService.getConfiguration()).build();
 
     return driverConfiguration;
@@ -90,7 +96,29 @@ public final class MLPracticeClient {
     return DriverLauncher.getLauncher(runtimeConf).run(driverConf, timeOut);
   }
 
-  public static void main(final String[] args) throws BindException, InjectionException {
+  // Parses command line arguments
+  public static final Configuration parseCommandLine(String args[]) throws IOException, BindException {
+    final JavaConfigurationBuilder cb = Tang.Factory.getTang().newConfigurationBuilder();
+    final CommandLine cl = new CommandLine(cb);
+    cl.registerShortNameOfClass(Parameters.IterNum.class);
+    cl.registerShortNameOfClass(Parameters.WorkerNum.class);
+    cl.registerShortNameOfClass(Parameters.Lambda.class);
+    cl.registerShortNameOfClass(Parameters.InputFilePath.class);
+    cl.processCommandLine(args);
+    return cb.build();
+  }
+
+  //
+  public static void main(final String[] args) throws IOException, BindException, InjectionException {
+
+    // Get inputs from command line
+    final Configuration commandLineConf = parseCommandLine(args);
+    final Injector commandLineInjector = Tang.Factory.getTang().newInjector(commandLineConf);
+    NUM_WORKERS = commandLineInjector.getNamedInstance(Parameters.WorkerNum.class);
+    NUM_ITERS = commandLineInjector.getNamedInstance(Parameters.IterNum.class);
+    LAMBDA = commandLineInjector.getNamedInstance(Parameters.Lambda.class);
+    FILE_INPUT_PATH = commandLineInjector.getNamedInstance(Parameters.InputFilePath.class);
+
     final Configuration runtimeConfiguration = LocalRuntimeConfiguration.CONF
         .set(LocalRuntimeConfiguration.NUMBER_OF_THREADS, NUM_WORKERS + 1)
         .build();
