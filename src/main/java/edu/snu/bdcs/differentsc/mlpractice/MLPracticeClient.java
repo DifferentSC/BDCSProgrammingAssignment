@@ -27,6 +27,7 @@ import com.microsoft.tang.Configuration;
 import com.microsoft.tang.ConfigurationBuilder;
 import com.microsoft.tang.JavaConfigurationBuilder;
 import com.microsoft.tang.Tang;
+import com.microsoft.tang.annotations.NamedParameter;
 import com.microsoft.tang.exceptions.BindException;
 import com.microsoft.tang.exceptions.InjectionException;
 import org.apache.hadoop.mapred.TextInputFormat;
@@ -44,9 +45,10 @@ public final class MLPracticeClient {
   /**
    * Number of milliseconds to wait for the job to complete.
    */
-  private static final int JOB_TIMEOUT = 10000; // 10 sec.
-  private static int NUM_WORKERS = 3;
-  private static int NUM_ITERS = 5;
+  private static final int JOB_TIMEOUT = 1000000; // 1000 sec.
+  private static int NUM_WORKERS = 10;
+  private static int NUM_ITERS = 10;
+  private static double LAMBDA = 0.001;
 
   /**
    * @return the configuration of the MLPractice driver.
@@ -62,7 +64,7 @@ public final class MLPracticeClient {
         .setComputeRequest(controllerRequest)
         .setMemoryMB(128)
         .setInputFormatClass(TextInputFormat.class)
-        .setInputPath("/input.txt")
+        .setInputPath("/input.csv")
         .setNumberOfDesiredSplits(NUM_WORKERS)
         .setDriverConfigurationModule(DriverConfiguration.CONF
             .set(DriverConfiguration.DRIVER_IDENTIFIER, "MLDriver")
@@ -74,6 +76,7 @@ public final class MLPracticeClient {
     JavaConfigurationBuilder cb = Tang.Factory.getTang().newConfigurationBuilder(dataLoadConfiguration);
     cb.bindNamedParameter(WorkerNum.class, Integer.toString(NUM_WORKERS));
     cb.bindNamedParameter(IterNum.class, Integer.toString(NUM_ITERS));
+    cb.bindNamedParameter(Lambda.class, Double.toString(LAMBDA));
 
     Configuration driverConfiguration = Tang.Factory.getTang().newConfigurationBuilder(cb.build(),
         GroupCommService.getConfiguration()).build();

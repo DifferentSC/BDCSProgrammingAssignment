@@ -52,6 +52,7 @@ public final class MLPracticeDriver {
   private AtomicBoolean isControllerTaskStarted = new AtomicBoolean(false);
   private final int workerNum;
   private final int iterNum;
+  private final double lambda;
   private int submittedWorkerTask;
   private String groupCommConfiguredMasterId;
 
@@ -60,7 +61,8 @@ public final class MLPracticeDriver {
     final GroupCommDriver groupCommDriver,
     final DataLoadingService dataLoadingService,
     @Parameter(WorkerNum.class) int workerNum,
-    @Parameter(IterNum.class) int iterNum) {
+    @Parameter(IterNum.class) int iterNum,
+    @Parameter(Lambda.class) double lambda) {
     LOG.log(Level.FINE, "Instantiated Driver");
     this.dataLoadingService = dataLoadingService;
     this.groupCommDriver = groupCommDriver;
@@ -81,6 +83,7 @@ public final class MLPracticeDriver {
     this.requestor = requestor;
     this.workerNum = workerNum;
     this.iterNum = iterNum;
+    this.lambda = lambda;
     this.submittedWorkerTask = 0;
   }
 
@@ -115,6 +118,7 @@ public final class MLPracticeDriver {
             .newConfigurationBuilder();
         partialTaskConfigurationBuilder.addConfiguration(basicTaskConf);
         partialTaskConfigurationBuilder.bindNamedParameter(IterNum.class, Integer.toString(iterNum));
+        partialTaskConfigurationBuilder.bindNamedParameter(Lambda.class, Double.toString(lambda));
         final Configuration partialTaskConfiguration = partialTaskConfigurationBuilder.build();
         MLCommGroup.addTask(partialTaskConfiguration);
 

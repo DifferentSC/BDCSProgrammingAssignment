@@ -16,9 +16,12 @@ public class CalculateGlobalGradient implements Reduce.ReduceFunction<ArrayList<
   @Override
   public ArrayList<Double> apply(final Iterable<ArrayList<Double>> vectorIterable) {
     Iterator<ArrayList<Double>> vectorIterator = vectorIterable.iterator();
-    ArrayList<Double> results = new ArrayList<Double>();
+    ArrayList<Double> results = vectorIterator.next();
     while(vectorIterator.hasNext()) {
-      results.addAll(vectorIterator.next());
+      ArrayList<Double> vector = vectorIterator.next();
+      for(int i = 0; i < results.size(); i++) {
+        results.set(i, results.get(i) + vector.get(i));
+      }
     }
     return results;
   }

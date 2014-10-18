@@ -6,7 +6,6 @@ import com.microsoft.tang.annotations.NamedParameter;
 /**
  * Number of iterations given by users
  */
-@NamedParameter(doc = "Num", short_name = "iters")
-public class IterNum implements Name<Integer> {
-
+@NamedParameter(doc = "regularization value", short_name = "lambda")
+public class Lambda implements Name<Double> {
 }

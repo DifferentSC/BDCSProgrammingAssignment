@@ -32,6 +32,7 @@ public final class ControllerTask implements Task {
   private final Broadcast.Sender<ArrayList<Double>> broadCastSender;
   private final Reduce.Receiver<ArrayList<Double>> initialParameterReceiver;
   private final Reduce.Receiver<ArrayList<Double>> globalGradientReceiver;
+  private final int iterNum;
 
   @Inject
   ControllerTask(final GroupCommClient groupCommClient,
@@ -40,12 +41,19 @@ public final class ControllerTask implements Task {
 
     this.communicationGroupClient = groupCommClient.getCommunicationGroup(MLGroupCommucation.class);
     this.broadCastSender = communicationGroupClient.getBroadcastSender(BroadCastVector.class);
-    this.initialParameterReceiver = communicationGroupClient.getReduceReceiver(ComputeGlobalGradient.class);
-    this.globalGradientReceiver = communicationGroupClient.getReduceReceiver(ComputeInitialParameter.class);
+    this.initialParameterReceiver = communicationGroupClient.getReduceReceiver(ComputeInitialParameter.class);
+    this.globalGradientReceiver = communicationGroupClient.getReduceReceiver(ComputeGlobalGradient.class);
+    this.iterNum = iterNum;
   }
 
   @Override
   public final byte[] call(final byte[] memento) throws Exception {
+    for (int i = 0; i < iterNum; i++) {
+      ArrayList<Double> globalGradient = globalGradientReceiver.reduce();
+      System.out.println(globalGradient.toString());
+      broadCastSender.send(globalGradient);
+      System.out.println("Done!");
+    }
     return null;
   }
 }
