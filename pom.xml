@@ -12,7 +12,7 @@
         <logging>-Djava.util.logging.config.class=com.microsoft.reef.util.logging.Config</logging>
         <hadoop.version>2.4.0</hadoop.version>
         <reef.version>0.9-SNAPSHOT</reef.version>
-        <junit.version>4.11</junit.version>
+        <junit.version>4.13.1</junit.version>
     </properties>
     <repositories>
         <repository>
