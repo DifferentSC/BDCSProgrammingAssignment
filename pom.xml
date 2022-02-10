@@ -10,7 +10,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <logging>-Djava.util.logging.config.class=com.microsoft.reef.util.logging.Config</logging>
-        <hadoop.version>2.4.0</hadoop.version>
+        <hadoop.version>2.10.1</hadoop.version>
         <reef.version>0.9-SNAPSHOT</reef.version>
         <junit.version>4.13.1</junit.version>
     </properties>
